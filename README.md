@@ -1,4 +1,4 @@
-Comandos importantes para playwright
+Important commands for playwright
 
 ***** Run test *****
 Run all test in the project 
