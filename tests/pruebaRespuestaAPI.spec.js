@@ -46,72 +46,76 @@ const getDbDataTypesFromQuery = (query) => {
 // Función para realizar una solicitud GET y verificar el código de estado
 const performGetRequest = async (url) => {
   const response = await context.get(url);
-  console.log(`Status Code: ${response.status()}`);
-  console.log(`Response Body: ${await response.text()}`);
   expect(response.status()).toBe(200);
   return response;
 };
 
-// Define los campos permitidos
+// Define los campos permitidos para gestion una
 const allowedFields_gestion_una = [
-    'id', 'instancia_id', 'empresa_id', 'agencias', 'auto_id', 'gestion_prin_id', 'gestion_general_tipo', 'gestion_estado', 'users_id', 'usuarios3s_id', 'usersugars_id', 'ordenes', 'oportunidades', 'repuestos', 'accesorios', 'servicios', 'stock', 'total_inicial', 'subtotal_inicialrepuestos', 'subtotal_inicialservicios', 'subtotal_inicialaccesorios', 'recuperado', 'rechazado', 'pendiente', 'cita_fecha', 'llamada_fecha'
-  ];
+  'id', 'instancia_id', 'empresa_id', 'agencias', 'auto_id', 'gestion_prin_id', 'gestion_general_tipo', 
+  'gestion_estado', 'users_id', 'usuarios3s_id', 'usersugars_id', 'ordenes', 'oportunidades', 
+  'repuestos', 'accesorios', 'servicios', 'stock', 'total_inicial', 'subtotal_inicialrepuestos', 
+  'subtotal_inicialservicios', 'subtotal_inicialaccesorios', 'recuperado', 'rechazado', 'pendiente', 
+  'cita_fecha', 'llamada_fecha'
+];
 
-  // Filtra campos no permitidos en el objeto
-const filterFields_gestion_una = (obj) => {
-    return Object.fromEntries(Object.entries(obj).filter(([key]) => allowedFields_gestion_una.includes(key)));
-  };
+// Define los campos permitidos para orden cabecera
+const allowedFields_gestion_orden_cabecera = [
+  'id', 'instancia_id', 'empresa_id', 'auto_id', 'gestion_id', 'ordTaller', 'ordFechaCrea', 
+  'codOrdAsesor', 'nomOrdAsesor', 'codAgencia', 'nomAgencia'
+];
+
+// Función para filtrar los campos permitidos en un objeto
+const filterFields = (obj, allowedFields) => {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => allowedFields.includes(key)));
+};
+
+// Función para obtener los datos desde una consulta SQL
+const getDbDataFromQuery = (query) => {
+  return new Promise((resolve, reject) => {
+    connection.query(query, (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(results);
+    });
+  });
+};
 
 test.describe('API Tests', () => {
 
-    test('API gestion: gestión una', async () => {
-        const url = '/api/v2/postventa/sugar_gestion/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
-        const response = await performGetRequest(url);
-        const responseBody = await response.json();
-    
-        if (responseBody.data && typeof responseBody.data === 'object') {
-          // Filtrar los campos no permitidos en los datos de la API
-          const filteredData = filterFields_gestion_una(responseBody.data);
-          console.log('Filtered API Data Types:', getTypes(filteredData));
-          
-          // Consulta SQL para comparar
-          const sqlQuery = `
-            SELECT PG.id, PG.instancia_id, POC.empresa_id, POC.codAgencia AS agencias,
-                   PG.auto_id, PG.gestion_prin_id, PG.gestion_general_tipo, PG.gestion_estado,
-                   PG.users_id, PG.usuarios3s_id, PG.usersugars_id, PG.ordenes, PG.oportunidades,
-                   PG.repuestos, PG.accesorios, PG.servicios, PG.stock, PG.total_inicial,
-                   PG.subtotal_inicialrepuestos, PG.subtotal_inicialservicios,
-                   PG.subtotal_inicialaccesorios, PG.recuperado, PG.rechazado, PG.pendiente,
-                   PG.cita_fecha, PG.llamada_fecha
-            FROM postvetas_centra_v3.pvt_gestions PG
-            INNER JOIN postvetas_centra_v3.pvt_orden_cabeceras POC
-            ON PG.auto_id = POC.auto_id;
-          `;
-          try {
-            const dbTypes = await getDbDataTypesFromQuery(sqlQuery);
-            console.log('DB Data Types:', dbTypes);
-    
-            // Comparar tipos de datos filtrados
-            const apiTypes = getTypes(filteredData);
-            console.log('Filtered API Data Types:', apiTypes);
-            expect(apiTypes).toEqual(dbTypes); // Ajusta la comparación según tus necesidades
-          } catch (error) {
-            console.error('Error fetching DB data types:', error);
-          }
-        } else {
-          console.log('Response data is not an object.');
-        }
-      });
-
-  test('API gestion: gestión all', async () => {
-    const url = '/api/v2/postventa/sugar_gestion?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
+  test('API gestion: gestión una', async () => {
+    const url = '/api/v2/postventa/sugar_gestion/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
     const response = await performGetRequest(url);
     const responseBody = await response.json();
-    if (Array.isArray(responseBody.data)) {
-      const sampleData = responseBody.data[0];
-      console.log('API Data Types:', getTypes(sampleData));
+
+    if (responseBody.data && typeof responseBody.data === 'object') {
+      const filteredData = filterFields(responseBody.data, allowedFields_gestion_una);
+      const apiTypes = getTypes(filteredData);
+      console.log('API Data Types:', apiTypes);
+
+      const sqlQuery = `
+        SELECT PG.id, PG.instancia_id, POC.empresa_id, POC.codAgencia AS agencias,
+               PG.auto_id, PG.gestion_prin_id, PG.gestion_general_tipo, PG.gestion_estado,
+               PG.users_id, PG.usuarios3s_id, PG.usersugars_id, PG.ordenes, PG.oportunidades,
+               PG.repuestos, PG.accesorios, PG.servicios, PG.stock, PG.total_inicial,
+               PG.subtotal_inicialrepuestos, PG.subtotal_inicialservicios,
+               PG.subtotal_inicialaccesorios, PG.recuperado, PG.rechazado, PG.pendiente,
+               PG.cita_fecha, PG.llamada_fecha
+        FROM postvetas_centra_v3.pvt_gestions PG
+        INNER JOIN postvetas_centra_v3.pvt_orden_cabeceras POC
+        ON PG.auto_id = POC.auto_id;
+      `;
+      try {
+        const dbTypes = await getDbDataTypesFromQuery(sqlQuery);
+        console.log('DB Data Types:', dbTypes);
+
+        expect(apiTypes).toEqual(dbTypes);
+      } catch (error) {
+        console.error('Error fetching DB data types:', error);
+      }
     } else {
-      console.log('Response data is not an array.');
+      console.log('Response data is not an object.');
     }
   });
 
@@ -119,12 +123,39 @@ test.describe('API Tests', () => {
     const url = '/api/v2/postventa/sugar_gestion/1/ordenCabecera?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
     const response = await performGetRequest(url);
     const responseBody = await response.json();
-    if (Array.isArray(responseBody.data)) {
-      const sampleData = responseBody.data[0];
-      console.log('API Data Types:', getTypes(sampleData));
+
+    if (responseBody.data && Array.isArray(responseBody.data)) {
+      const filteredData = responseBody.data.map(item => filterFields(item, allowedFields_gestion_orden_cabecera));
+      console.log('Filtered API Data:', JSON.stringify(filteredData, null, 2));
+
+      const sqlQuery = `
+        SELECT PG.id, PG.instancia_id, PG.empresa_id, PG.auto_id, POC.gestion_id,
+        POC.ordTaller, POC.ordFechaCrea, POC.codOrdAsesor, POC.nomOrdAsesor, POC.codAgencia, POC.nomAgencia 
+        FROM postvetas_centra_v3.pvt_gestions PG 
+        INNER JOIN postvetas_centra_v3.pvt_orden_cabeceras POC 
+        ON PG.id = POC.id AND PG.instancia_id = POC.instancia_id 
+        AND PG.empresa_id = POC.empresa_id AND PG.auto_id = POC.auto_id;
+      `;
+
+      try {
+        const dbData = await getDbDataFromQuery(sqlQuery);
+        const filteredDbData = dbData.map(item => filterFields(item, allowedFields_gestion_orden_cabecera));
+        console.log('Filtered DB Data:', JSON.stringify(filteredDbData, null, 2));
+
+        // Compara las cabeceras de los datos de la API con los datos de la base de datos
+        const apiTypes = filteredData.length > 0 ? getTypes(filteredData[0]) : {};
+        const dbTypes = filteredDbData.length > 0 ? getTypes(filteredDbData[0]) : {};
+
+        console.log('API Data Types:', apiTypes);
+        console.log('DB Data Types:', dbTypes);
+
+        expect(apiTypes).toEqual(dbTypes);
+      } catch (error) {
+        console.error('Error fetching DB data:', error);
+      }
     } else {
       console.log('Response data is not an array.');
     }
   });
 
-})
+});
