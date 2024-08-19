@@ -47,12 +47,16 @@ module.exports = defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
+    {
+      name: 'e2e', // Añadir un proyecto E2E
+      testDir: './e2e', // Especifica el directorio para las pruebas E2E
+      use: { ...devices['Desktop Chrome'] }, // Puedes usar el dispositivo que prefieras
+    },
     /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
     // {
     //   name: 'Mobile Safari',
     //   use: { ...devices['iPhone 12'] },
