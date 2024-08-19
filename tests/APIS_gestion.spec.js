@@ -52,17 +52,13 @@ const performGetRequest = async (url) => {
 
 // Define los campos permitidos para gestion una
 const allowedFields_gestion_una = [
-  'id', 'instancia_id', 'empresa_id', 'agencias', 'auto_id', 'gestion_prin_id', 'gestion_general_tipo', 
-  'gestion_estado', 'users_id', 'usuarios3s_id', 'usersugars_id', 'ordenes', 'oportunidades', 
-  'repuestos', 'accesorios', 'servicios', 'stock', 'total_inicial', 'subtotal_inicialrepuestos', 
-  'subtotal_inicialservicios', 'subtotal_inicialaccesorios', 'recuperado', 'rechazado', 'pendiente', 
-  'cita_fecha', 'llamada_fecha'
+  'id', 'instancia_id', 'empresa_id', 'agencias', 'auto_id', 'gestion_prin_id', 'gestion_general_tipo', 'gestion_estado', 'users_id', 'usuarios3s_id', 'usersugars_id', 'ordenes', 'oportunidades', 'repuestos', 'accesorios', 'servicios', 'stock', 'total_inicial', 'subtotal_inicialrepuestos', 
+  'subtotal_inicialservicios', 'subtotal_inicialaccesorios', 'recuperado', 'rechazado', 'pendiente', 'cita_fecha', 'llamada_fecha'
 ];
 
 // Define los campos permitidos para orden cabecera
 const allowedFields_gestion_orden_cabecera = [
-  'id', 'instancia_id', 'empresa_id', 'auto_id', 'gestion_id', 'ordTaller', 'ordFechaCrea', 
-  'codOrdAsesor', 'nomOrdAsesor', 'codAgencia', 'nomAgencia'
+  'id', 'instancia_id', 'empresa_id', 'auto_id', 'gestion_id', 'ordTaller', 'ordFechaCrea', 'codOrdAsesor', 'nomOrdAsesor', 'codAgencia', 'nomAgencia'
 ];
 
 // Función para filtrar los campos permitidos en un objeto
@@ -84,7 +80,7 @@ const getDbDataFromQuery = (query) => {
 
 test.describe('API Tests', () => {
 
-  test('API gestion: gestión una', async () => {
+  test('API gestion: gestion una', async () => {
     const url = '/api/v2/postventa/sugar_gestion/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
     const response = await performGetRequest(url);
     const responseBody = await response.json();
