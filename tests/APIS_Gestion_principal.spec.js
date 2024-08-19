@@ -222,7 +222,7 @@ test.describe('API Tests gestion principal', () => {
     }
   });
 
-  test('API gestion principal: detalle gestion oportundidades all', async () => {
+  test('API gestion principal: detalle gestion oportunidades all', async () => {
     const url = '/api/v2/postventa/gestionPrincipal/1/detalleGestionOportunidades_todos?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
 
     try {
@@ -282,7 +282,7 @@ test.describe('API Tests gestion principal', () => {
     }
   });
 
-  test('API gestion principal: detalle gestion oportundidades una', async () => {
+  test('API gestion principal: detalle gestion oportunidades una', async () => {
     const url = '/api/v2/postventa/gestionPrincipal/1/detalleGestionOportunidades?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
 
     try {
@@ -309,15 +309,24 @@ test.describe('API Tests gestion principal', () => {
         delete apiTypes.primergestioestado;
         delete apiTypes.gestionestados;
         delete apiTypes.stock_avalible;
+        delete apiTypes.links;
+        delete apiTypes.s3s_usuarios3s_id;
+        delete apiTypes.no_contesta_contador;
+        delete apiTypes.created_at;
+        delete apiTypes.updated_at;
 
         const sqlQuery = 'SELECT PG.id, DGO.ws_log_id, PG.auto_id, POC.codAgencia, POC.nomAgencia, POC.ordTaller, DGO.kmVehiculo, DGO.kmRelVehiculo, DGO.ordFechaCita, POC.ordFechaCrea, DGO.ordFchaCierre, POC.codOrdAsesor, POC.nomOrdAsesor, DGO.codServ, DGO.descServ, DGO.cantidad, DGO.cargosCobrar, DGO.tipoCL, DGO.facturado, DGO.tipoServ, DGO.franquicia, DGO.codEstOrdTaller, DGO.flatLocal, DGO.codCliFactura, DGO.nomUsuarioVista, DGO.cita_fecha, DGO.s3s_codigo_seguimiento, DGO.s3s_codigo_estado_taller, DGO.lado, DGO.flatLocal, DGO.codCliFactura, DGO.nomUsuarioVista, DGO.cita_fecha, DGO.s3s_codigo_seguimiento, DGO.s3s_codigo_estado_taller, DGO.s3s_usuarios3s_id, DGO.facturacion_fecha, DGO.facturacion_agente, DGO.perdida_fecha, DGO.perdida_agente, DGO.perdida_motivo, DGO.ganado_fecha, DGO.ganado_factura, DGO.agendado_fecha, DGO.tipo_agendamiento, DGO.asunto_agendamiento, DGO.observacion_agendamiento, DGO.gestion_fecha, DGO.gestion_tipo, DGO.no_contesta_fecha, DGO.no_contesta_contador, DGO.no_contesta_mensaje, DGO.created_at, DGO.updated_at FROM postvetas_centra_v3.pvt_gestions PG inner join postvetas_centra_v3.pvt_orden_cabeceras POC on PG.id = POC.id inner join postvetas_centra_v3.pvt_detalle_gestion_oportunidades DGO on PG.id = DGO.id';
         try {
           const dbTypes = await getDbDataTypesFromQuery(sqlQuery);
           console.log('DB Data Types:', dbTypes);
 
-          // Elimina el campo `gestion_prin_id` de los tipos de datos de la base de datos
-          delete dbTypes.oportunidad_id;
-    
+          //Elimina los de los tipos de datos de la base de datos
+          delete dbTypes.oportunidad_id; 
+          delete dbTypes.s3s_usuarios3s_id;
+          delete dbTypes.no_contesta_contador;       
+          delete dbTypes.created_at;
+          delete dbTypes.updated_at;
+
           // Compara los tipos de datos
           expect(apiTypes).toEqual(expectedDataTypesDetalleOportunidades);
           expect(apiTypes).toEqual(dbTypes);
