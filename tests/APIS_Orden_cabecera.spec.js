@@ -74,7 +74,7 @@ const filterFields = (obj, allowedFields) => {
 
   test.describe('API Tests', () => {
 
-    test('API gestion: orden cabecera', async () => {
+    test('API orden cabecera: all', async () => {
         const url = '/api/v2/postventa/sugar_gestion/1/ordenCabecera?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
         const response = await performGetRequest(url);
         const responseBody = await response.json();
@@ -112,5 +112,45 @@ const filterFields = (obj, allowedFields) => {
           console.log('Response data is not an array.');
         }
       });
+
+      test('API orden cabecera: una', async () => {
+        const url = '/api/v2/postventa/sugar_ordencabecera/1?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
+        const response = await performGetRequest(url);
+        const responseBody = await response.json();
+    
+        if (responseBody.data && typeof responseBody.data === 'object') {
+            // Filtra los campos permitidos en el objeto data
+            const filteredData = filterFields(responseBody.data, allowedFields_gestion_orden_cabecera_all);
+            console.log('Filtered API Data:', JSON.stringify(filteredData, null, 2));
+    
+            const sqlQuery = `
+                SELECT PG.id, PG.instancia_id, PG.empresa_id, PG.auto_id, POC.gestion_id,
+                POC.ordTaller, POC.ordFechaCrea, POC.codOrdAsesor, POC.nomOrdAsesor, POC.codAgencia, POC.nomAgencia 
+                FROM postvetas_centra_v3.pvt_gestions PG 
+                INNER JOIN postvetas_centra_v3.pvt_orden_cabeceras POC 
+                ON PG.id = POC.id AND PG.instancia_id = POC.instancia_id 
+                AND PG.empresa_id = POC.empresa_id AND PG.auto_id = POC.auto_id;
+            `;
+    
+            try {
+                const dbData = await getDbDataFromQuery(sqlQuery);
+                const filteredDbData = dbData.map(item => filterFields(item, allowedFields_gestion_orden_cabecera_all));
+                console.log('Filtered DB Data:', JSON.stringify(filteredDbData, null, 2));
+    
+                // Compara las cabeceras de los datos de la API con los datos de la base de datos
+                const apiTypes = getTypes(filteredData);
+                const dbTypes = filteredDbData.length > 0 ? getTypes(filteredDbData[0]) : {};
+    
+                console.log('API Data Types:', apiTypes);
+                console.log('DB Data Types:', dbTypes);
+    
+                expect(apiTypes).toEqual(dbTypes);
+            } catch (error) {
+                console.error('Error fetching DB data:', error);
+            }
+        } else {
+            console.log('Response data is not an object or missing.');
+        }
+    });    
 
   });
