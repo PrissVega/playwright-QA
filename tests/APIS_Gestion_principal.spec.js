@@ -128,4 +128,48 @@ test.describe('API Tests gestion principal', () => {
       console.error('Error during API request:', error);
     }
   });
+
+  test('API gestion: gestion principal una', async () => {
+    const url = '/api/v2/postventa/gestionPrincipal/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
+
+    try {
+      const response = await performGetRequest(url);
+      const responseBody = await response.json();
+      console.log('Response from API:', responseBody);
+
+      if (responseBody.data && Array.isArray(responseBody.data)) {
+        console.log('Data before filtering:', responseBody.data);
+
+        // Obtén los tipos de datos de los datos filtrados
+        const apiTypes = responseBody.data.length > 0 ? getTypes(responseBody.data[0]) : {};
+        console.log('API Data Types:', apiTypes);
+
+        // Elimina el campo `gestion_prin_id` de los tipos de datos de la API
+        delete apiTypes.gestion_prin_id
+        delete apiTypes.links;
+
+        const sqlQuery = 'SELECT * FROM postvetas_centra_v3.view_pvt_gestion_principals LIMIT 1';
+        try {
+          const dbTypes = await getDbDataTypesFromQuery(sqlQuery);
+          console.log('DB Data Types:', dbTypes);
+
+          // Elimina el campo `gestion_prin_id` de los tipos de datos de la base de datos
+          delete dbTypes.gestion_prin_id
+          delete dbTypes.links;
+
+          // Compara los tipos de datos
+          expect(apiTypes).toEqual(expectedDataTypes);
+          expect(apiTypes).toEqual(dbTypes);
+
+        } catch (error) {
+          console.error('Error fetching DB data types:', error);
+        }
+      } else {
+        console.log('Response data is not an array.');
+      }
+    } catch (error) {
+      console.error('Error during API request:', error);
+    }
+  });
+
 });
