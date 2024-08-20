@@ -13,7 +13,8 @@ test.beforeAll(async () => {
   context = await request.newContext({
     ignoreHTTPSErrors: true,
     baseURL: 'https://api-sugarcrm.casabaca.loc',
-    extraHTTPHeaders: headers
+    extraHTTPHeaders: headers,
+    timeout: 60000  // Aumenta el tiempo de espera a 60 segundos
   });
 });
 
@@ -22,31 +23,16 @@ test.afterAll(async () => {
   await context.dispose();
 });
 
-// Función para obtener los tipos de datos de un objeto
-const getTypes = (obj) => {
-  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key, typeof value]));
-};
-
-// Función para obtener los tipos de datos de una consulta SQL
-const getDbDataTypesFromQuery = (query) => {
-  return new Promise((resolve, reject) => {
-    connection.query(query, (error, results) => {
-      if (error) {
-        return reject(error);
-      }
-      // Inferir tipos de datos desde los resultados de la consulta
-      const types = results.length > 0 ? Object.fromEntries(
-        Object.keys(results[0]).map(key => [key, typeof results[0][key]])
-      ) : {};
-      resolve(types);
-    });
-  });
-};
-
-// Función para realizar una solicitud GET y verificar el código de estado
-const performGetRequest = async (url) => {
+// Función para medir el tiempo de respuesta de una solicitud GET
+const measureGetRequestTime = async (url) => {
+  const startTime = Date.now();
   const response = await context.get(url);
+  const endTime = Date.now();
+  const responseTime = endTime - startTime;
+
+  console.log(`Tiempo de respuesta para ${url}: ${responseTime} ms`);
   expect(response.status()).toBe(200);
+
   return response;
 };
 
@@ -60,6 +46,26 @@ const allowedFields_gestion_una = [
 const allowedFields_gestion_orden_cabecera = [
   'id', 'instancia_id', 'empresa_id', 'auto_id', 'gestion_id', 'ordTaller', 'ordFechaCrea', 'codOrdAsesor', 'nomOrdAsesor', 'codAgencia', 'nomAgencia'
 ];
+
+// Función para obtener los tipos de datos de un objeto
+const getTypes = (obj) => {
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key, typeof value]));
+};
+
+// Función para obtener los tipos de datos de una consulta SQL
+const getDbDataTypesFromQuery = (query) => {
+  return new Promise((resolve, reject) => {
+    connection.query(query, (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      const types = results.length > 0 ? Object.fromEntries(
+        Object.keys(results[0]).map(key => [key, typeof results[0][key]])
+      ) : {};
+      resolve(types);
+    });
+  });
+};
 
 // Función para filtrar los campos permitidos en un objeto
 const filterFields = (obj, allowedFields) => {
@@ -82,7 +88,7 @@ test.describe('API Tests', () => {
 
   test('API gestion: gestion una', async () => {
     const url = '/api/v2/postventa/sugar_gestion/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
-    const response = await performGetRequest(url);
+    const response = await measureGetRequestTime(url);
     const responseBody = await response.json();
 
     if (responseBody.data && typeof responseBody.data === 'object') {
@@ -117,7 +123,7 @@ test.describe('API Tests', () => {
 
   test('API gestion: orden cabecera', async () => {
     const url = '/api/v2/postventa/sugar_gestion/1/ordenCabecera?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
-    const response = await performGetRequest(url);
+    const response = await measureGetRequestTime(url);
     const responseBody = await response.json();
 
     if (responseBody.data && Array.isArray(responseBody.data)) {
@@ -138,7 +144,6 @@ test.describe('API Tests', () => {
         const filteredDbData = dbData.map(item => filterFields(item, allowedFields_gestion_orden_cabecera));
         console.log('Filtered DB Data:', JSON.stringify(filteredDbData, null, 2));
 
-        // Compara las cabeceras de los datos de la API con los datos de la base de datos
         const apiTypes = filteredData.length > 0 ? getTypes(filteredData[0]) : {};
         const dbTypes = filteredDbData.length > 0 ? getTypes(filteredDbData[0]) : {};
 

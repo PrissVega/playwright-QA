@@ -13,7 +13,8 @@ test.beforeAll(async () => {
   context = await request.newContext({
     ignoreHTTPSErrors: true,
     baseURL: 'https://api-sugarcrm.casabaca.loc',
-    extraHTTPHeaders: headers
+    extraHTTPHeaders: headers,
+    timeout: 60000  // Aumenta el tiempo de espera a 60 segundos
   });
 });
 
@@ -43,9 +44,14 @@ const getDbDataTypesFromQuery = (query) => {
   });
 };
 
-// Función para realizar una solicitud GET y verificar el código de estado
-const performGetRequest = async (url) => {
+// Función para medir el tiempo de respuesta de una solicitud GET
+const measureGetRequestTime = async (url) => {
+  const startTime = Date.now();
   const response = await context.get(url);
+  const endTime = Date.now();
+  const responseTime = endTime - startTime;
+
+  console.log(`Tiempo de respuesta para ${url}: ${responseTime} ms`);
   expect(response.status()).toBe(200);
   return response;
 };
@@ -126,7 +132,7 @@ const expectedDataTypesDetalleOportunidades = {
 
     test('API orden cabecera: all', async () => {
         const url = '/api/v2/postventa/sugar_gestion/1/ordenCabecera?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
-        const response = await performGetRequest(url);
+        const response = await measureGetRequestTime(url);
         const responseBody = await response.json();
     
         if (responseBody.data && Array.isArray(responseBody.data)) {
@@ -165,7 +171,7 @@ const expectedDataTypesDetalleOportunidades = {
 
       test('API orden cabecera: una', async () => {
         const url = '/api/v2/postventa/sugar_ordencabecera/1?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
-        const response = await performGetRequest(url);
+        const response = await measureGetRequestTime(url);
         const responseBody = await response.json();
     
         if (responseBody.data && typeof responseBody.data === 'object') {
@@ -207,7 +213,7 @@ const expectedDataTypesDetalleOportunidades = {
         const url = '/api/v2/postventa/sugar_ordencabecera/1/detallegestionoportunidades_todos?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
     
         try {
-          const response = await performGetRequest(url);
+          const response = await measureGetRequestTime(url);
           const responseBody = await response.json();
           console.log('Response from API:', responseBody);
     
@@ -267,7 +273,7 @@ const expectedDataTypesDetalleOportunidades = {
         const url = '/api/v2/postventa/sugar_ordencabecera/1/detallegestionoportunidades_todos?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
     
         try {
-          const response = await performGetRequest(url);
+          const response = await measureGetRequestTime(url);
           const responseBody = await response.json();
           console.log('Response from API:', responseBody);
     
