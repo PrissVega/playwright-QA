@@ -110,5 +110,9 @@ test.describe('Proceso E2E Postventa', () => {
         await expect(headerDataContainerFactura).toBeVisible();
         // Haz clic en el contenedor
         await headerDataContainerFactura.click();
+        //Ver más: Usuario
+        await page.click('span.action-show.cursor-pointer');
+        //Ver más: Factura
+        await page.click('span.action-show:has-text("ver más")');
   });
 });
