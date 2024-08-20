@@ -12,7 +12,9 @@
 **npx playwright test APIS_gestion.spec.js** --> (specify which to test)
 
 **Important commands for playwright**
+
 ***** Run test *****
+
 Run all test in the project 
 1. Run test in headed mode: npx playwright test --headed
 2. Run test with UI mode (dev): npx playwight test --ui
