@@ -134,13 +134,32 @@ test.describe('Proceso E2E Postventa', () => {
         const headerDataContainerUsuario = page.locator(SELECTORS.headerDataContainerUsuario);
         await expect(headerDataContainerUsuario).toBeVisible();
         await retryClick(headerDataContainerUsuario);
+        const span = page.locator('span.action-show:has-text("ver más")');            
+        await span.click();
+    });
+
+    test('Select card and see invoice details', async ({ page }) => {
+        await page.goto(URL);
+        await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de continuar
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        const titleText = await page.locator(SELECTORS.titleElement).innerText();
+        expect(titleText).toContain('Gestión de Vehículos');
+
+        await page.waitForLoadState('networkidle');
+        const primeraTarjeta = await selectFirstCard(page);
+
+        const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
+        await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
+        await expect(titleCarDiv).toBeVisible();
 
         const headerDataContainerFactura = page.locator(SELECTORS.headerDataContainerFactura);
         await expect(headerDataContainerFactura).toBeVisible();
         await retryClick(headerDataContainerFactura);
-        
-        await retryClick(page.locator('span.action-show.cursor-pointer'));
-        await retryClick(page.locator('span.action-show:has-text("ver más")'));
+        const span = page.locator('span.action-show.cursor-pointer:has-text("ver más")');
+        await span.click();
     });
 
     test('button no answer', async ({ page }) => {
