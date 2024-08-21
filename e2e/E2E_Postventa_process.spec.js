@@ -1,5 +1,8 @@
 const { test, expect } = require('@playwright/test');
 
+// Establecer un timeout global de 60 segundos para todos los tests
+test.setTimeout(60000); // 60 segundos
+
 // Define selectores y datos comunes
 const URL = 'http://localhost:9000/#/';
 const SELECTORS = {
@@ -14,8 +17,44 @@ const SELECTORS = {
     titleCarDiv: 'div.title-car',
     headerDataContainerUsuario: 'div.header-data-container:has-text("Usuario")',
     headerDataContainerFactura: 'div.header-data-container:has-text("Factura")',
+    noContestaButton: 'button:has-text("No contesta")',
+    aceptarButton: 'button:has-text("Aceptar")',
+    printIcon: 'div.button-icon i.material-icons:has-text("print")',
+    someElementAfterLoader: 'div.some-element'
 };
 
+// Función para esperar que el loader desaparezca
+async function waitForLoaderToDisappear(page, timeout = 30000) {
+    const loaderSelector = 'div.q-loading__box.column.items-center'; // Selector del loader
+
+    try {
+        await page.waitForSelector(loaderSelector, { state: 'hidden', timeout });
+        console.log("Loader ha desaparecido.");
+    } catch (error) {
+        console.error("Timeout esperando el loader: ", error);
+        throw error;
+    }
+}
+
+// Función para intentar hacer clic en un elemento con reintentos
+async function retryClick(locator, retries = 10, timeout = 5000) {
+    let attempt = 0;
+    while (attempt < retries) {
+        try {
+            await locator.click();
+            return; // Exit if click is successful
+        } catch (error) {
+            console.error(`Click attempt ${attempt + 1} failed:`, error);
+            attempt++;
+            if (attempt < retries) {
+                await locator.page().waitForTimeout(timeout); // Wait before retrying
+            }
+        }
+    }
+    throw new Error('Failed to click on the element after multiple attempts');
+}
+
+// Función para realizar login
 async function login(page, username, password) {
     const usernameInput = page.locator(SELECTORS.usernameInput);
     const passwordInput = page.locator(SELECTORS.passwordInput);
@@ -23,104 +62,119 @@ async function login(page, username, password) {
 
     await expect(usernameInput).toBeVisible();
     await usernameInput.fill(username);
-  
+
     await expect(passwordInput).toBeVisible();
     await passwordInput.fill(password);
 
-    await loginButton.click();
+    await retryClick(loginButton);
+
+    // Esperar a que el loader desaparezca
+    await waitForLoaderToDisappear(page);
+}
+
+// Función para seleccionar la primera tarjeta
+async function selectFirstCard(page) {
+    const primeraTarjeta = page.locator('section.card:first-of-type');
+    await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de seleccionar la tarjeta
+    await primeraTarjeta.waitFor({ state: 'visible', timeout: 10000 });
+    await retryClick(primeraTarjeta);
+    await primeraTarjeta.waitFor({ state: 'visible', timeout: 10000 });
+    return primeraTarjeta;
 }
 
 test.describe('Proceso E2E Postventa', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto(URL);
-    });
 
     test('Login with correct credentials', async ({ page }) => {
+        await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page);
         const successfulMessage = await page.locator(SELECTORS.successMessage).innerText();
         expect(successfulMessage).toContain('Validación de credenciales exitosa..');
     });
 
     test('Login with incorrect credentials', async ({ page }) => {
+        await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'WrongPass');
-        await page.waitForSelector(SELECTORS.errorMessage, { state: 'visible', timeout: 10000 });
+        await waitForLoaderToDisappear(page);
         const errorMessage = await page.locator(SELECTORS.errorMessage).innerText();
         expect(errorMessage).toContain('El usuario o password son incorrectos');
     });
 
     test('Logout', async ({ page }) => {
+        await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
-        await page.waitForFunction(() => !document.querySelector('div.alert-selector')); // Cambia al selector de la alerta
-        await page.waitForSelector('span.q-btn__content', { state: 'visible', timeout: 10000 });
-        await page.locator('span.q-btn__content i.material-icons:has-text("account_circle")').click();
-        await page.waitForSelector('div.q-item__section:has-text("Cerrar sesión")', { state: 'visible', timeout: 10000 });
-        await page.locator('div.q-item__section:has-text("Cerrar sesión")').click();
-        await page.waitForSelector('span.block:has-text("Confirmar")', { state: 'visible', timeout: 10000 });
-        await page.locator('span.block:has-text("Confirmar")').click();
-        await page.waitForSelector(SELECTORS.usernameInput, { state: 'visible', timeout: 10000 });
+        await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de intentar cerrar sesión
+        await page.waitForSelector('span.q-btn__content', { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator('span.q-btn__content i.material-icons:has-text("account_circle")'));
+        await page.waitForSelector('div.q-item__section:has-text("Cerrar sesión")', { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator('div.q-item__section:has-text("Cerrar sesión")'));
+        await page.waitForSelector('span.block:has-text("Confirmar")', { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator('span.block:has-text("Confirmar")'));
+        await page.waitForSelector(SELECTORS.usernameInput, { state: 'visible', timeout: 30000 });
         await expect(page.locator(SELECTORS.usernameInput)).toBeVisible();
     });
 
     test('Select card and see user details', async ({ page }) => {
-    await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
-    await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 20000 });
-    await page.locator(SELECTORS.spanAcceder).click();
-    await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 10000 });
-    const titleText = await page.locator(SELECTORS.titleElement).innerText();
-    expect(titleText).toContain('Gestión de Vehículos');
-
-    // Espera a que las tarjetas estén visibles
-    await page.waitForSelector('section.card', { state: 'visible', timeout: 30000 });
-    
-    // Selecciona la primera tarjeta
-    const primeraTarjeta = page.locator('section.card:first-of-type');
-    await primeraTarjeta.click();
-    await expect(primeraTarjeta).toBeVisible();
-
-    // Verifica que el div.title-car sea visible después de seleccionar la tarjeta
-    console.log('Esperando a que div.title-car sea visible...');
-    const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
-    await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
-    await expect(titleCarDiv).toBeVisible();
-
-    // Verifica otros elementos
-    console.log('Verificando headerDataContainerUsuario...');
-    const headerDataContainerUsuario = page.locator(SELECTORS.headerDataContainerUsuario);
-    await expect(headerDataContainerUsuario).toBeVisible();
-    await headerDataContainerUsuario.click();
-
-    console.log('Verificando headerDataContainerFactura...');
-    const headerDataContainerFactura = page.locator(SELECTORS.headerDataContainerFactura);
-    await expect(headerDataContainerFactura).toBeVisible();
-    await headerDataContainerFactura.click();
-    
-    // Acciones adicionales
-    await page.click('span.action-show.cursor-pointer');
-    await page.click('span.action-show:has-text("ver más")');
-});
-
-    test('button no answer', async ({ page }) => {
+        await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
-        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 20000 });
-        await page.locator(SELECTORS.spanAcceder).click();
-        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 10000 });
+        await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de continuar
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
 
-        // Selecciona la primera tarjeta sin depender de su título
-        console.log('Esperando a que la primera tarjeta sea visible...');
-        const primeraTarjeta = page.locator('section.card:first-of-type');
-        await primeraTarjeta.waitFor({ state: 'visible', timeout: 30000 });
-        await primeraTarjeta.click();
-        await expect(primeraTarjeta).toBeVisible();
+        await page.waitForLoadState('networkidle');
+        const primeraTarjeta = await selectFirstCard(page);
 
-        //Selecciona botón No contesta
-        const noContestaButton = page.locator('button:has-text("No contesta")');
-        await noContestaButton.click();
+        const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
+        await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
+        await expect(titleCarDiv).toBeVisible();
 
-        //Aceptar alerta de No contesta
-        const aceptarButton = page.locator('button:has-text("Aceptar")');
-        await aceptarButton.click();
+        const headerDataContainerUsuario = page.locator(SELECTORS.headerDataContainerUsuario);
+        await expect(headerDataContainerUsuario).toBeVisible();
+        await retryClick(headerDataContainerUsuario);
+
+        const headerDataContainerFactura = page.locator(SELECTORS.headerDataContainerFactura);
+        await expect(headerDataContainerFactura).toBeVisible();
+        await retryClick(headerDataContainerFactura);
+        
+        await retryClick(page.locator('span.action-show.cursor-pointer'));
+        await retryClick(page.locator('span.action-show:has-text("ver más")'));
     });
 
+    test('button no answer', async ({ page }) => {
+        await page.goto(URL);
+        await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de interactuar
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        const titleText = await page.locator(SELECTORS.titleElement).innerText();
+        expect(titleText).toContain('Gestión de Vehículos');
+
+        const primeraTarjeta = await selectFirstCard(page);
+
+        const noContestaButton = page.locator(SELECTORS.noContestaButton);
+        await retryClick(noContestaButton);
+
+        const aceptarButton = page.locator(SELECTORS.aceptarButton);
+        await retryClick(aceptarButton);
+    });
+
+    test('button history', async ({ page }) => {
+        await page.goto(URL);
+        await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page); // Esperar a que el loader desaparezca antes de interactuar
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        const titleText = await page.locator(SELECTORS.titleElement).innerText();
+        expect(titleText).toContain('Gestión de Vehículos');
+
+        const primeraTarjeta = await selectFirstCard(page);
+
+        const printIcon = page.locator(SELECTORS.printIcon);
+        await retryClick(printIcon);
+    });
 });

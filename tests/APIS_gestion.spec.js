@@ -32,7 +32,6 @@ const measureGetRequestTime = async (url) => {
 
   console.log(`Tiempo de respuesta para ${url}: ${responseTime} ms`);
   expect(response.status()).toBe(200);
-
   return response;
 };
 
