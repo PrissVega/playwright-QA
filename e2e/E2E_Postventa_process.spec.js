@@ -125,16 +125,21 @@ test.describe('Proceso E2E Postventa', () => {
         expect(titleText).toContain('Gestión de Vehículos');
 
         await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(9000);
         const primeraTarjeta = await selectFirstCard(page);
 
         const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
         await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
         await expect(titleCarDiv).toBeVisible();
 
+        // Espera a que el selector esté visible antes de continuar
+        await page.waitForSelector(SELECTORS.headerDataContainerUsuario, { state: 'visible', timeout: 9000 });
         const headerDataContainerUsuario = page.locator(SELECTORS.headerDataContainerUsuario);
         await expect(headerDataContainerUsuario).toBeVisible();
         await retryClick(headerDataContainerUsuario);
-        const span = page.locator('span.action-show:has-text("ver más")');            
+        //Espera del selector
+        await page.waitForSelector('span.action-show:has-text("ver más")', { state: 'visible', timeout: 5000 });
+        const span = page.locator('span.action-show:has-text("ver más")').nth(0);;            
         await span.click();
     });
 
@@ -149,16 +154,22 @@ test.describe('Proceso E2E Postventa', () => {
         expect(titleText).toContain('Gestión de Vehículos');
 
         await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(9000);
         const primeraTarjeta = await selectFirstCard(page);
 
         const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
         await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
         await expect(titleCarDiv).toBeVisible();
 
+        // Espera a que el selector esté visible antes de continuar
+        await page.waitForSelector(SELECTORS.headerDataContainerFactura, { state: 'visible', timeout: 9000 });
         const headerDataContainerFactura = page.locator(SELECTORS.headerDataContainerFactura);
         await expect(headerDataContainerFactura).toBeVisible();
         await retryClick(headerDataContainerFactura);
-        const span = page.locator('span.action-show.cursor-pointer:has-text("ver más")');
+        
+        // Espera a que el selector esté visible
+        await page.waitForSelector('span.action-show.cursor-pointer:has-text("ver más")', { state: 'visible', timeout: 5000 });
+        const span = page.locator('span.action-show.cursor-pointer:has-text("ver más")').nth(1);;
         await span.click();
     });
 
@@ -172,6 +183,7 @@ test.describe('Proceso E2E Postventa', () => {
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
 
+        await page.waitForTimeout(9000);
         const primeraTarjeta = await selectFirstCard(page);
 
         const noContestaButton = page.locator(SELECTORS.noContestaButton);
@@ -190,7 +202,8 @@ test.describe('Proceso E2E Postventa', () => {
         await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
-
+        
+        await page.waitForTimeout(3000);
         const primeraTarjeta = await selectFirstCard(page);
 
         const printIcon = page.locator(SELECTORS.printIcon);
