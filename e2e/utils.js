@@ -15,7 +15,8 @@ const SELECTORS = {
     noContestaButton: 'button:has-text("No contesta")',
     aceptarButton: 'button:has-text("Aceptar")',
     printIcon: 'div.button-icon i.material-icons:has-text("print")',
-    someElementAfterLoader: 'div.some-element'
+    someElementAfterLoader: 'div.some-element',
+    allOportunitiesButton: 'button:has-text("Todas las oportunidades")' 
 };
 
 const URL = 'http://localhost:9000/#/';

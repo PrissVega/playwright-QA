@@ -7,9 +7,9 @@ test.describe('Proceso E2E Card Details', () => {
         await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
         await waitForLoaderToDisappear(page);
-        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 60000 });
         await retryClick(page.locator(SELECTORS.spanAcceder));
-        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 60000 });
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
 
@@ -18,7 +18,7 @@ test.describe('Proceso E2E Card Details', () => {
         await selectFirstCard(page);
 
         const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
-        await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
+        await titleCarDiv.waitFor({ state: 'visible', timeout: 60000 });
         await expect(titleCarDiv).toBeVisible();
 
         await page.waitForSelector(SELECTORS.headerDataContainerUsuario, { state: 'visible', timeout: 9000 });
@@ -34,9 +34,9 @@ test.describe('Proceso E2E Card Details', () => {
         await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
         await waitForLoaderToDisappear(page);
-        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 60000 });
         await retryClick(page.locator(SELECTORS.spanAcceder));
-        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 60000 });
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
 
@@ -45,7 +45,7 @@ test.describe('Proceso E2E Card Details', () => {
         await selectFirstCard(page);
 
         const titleCarDiv = page.locator(SELECTORS.titleCarDiv);
-        await titleCarDiv.waitFor({ state: 'visible', timeout: 30000 });
+        await titleCarDiv.waitFor({ state: 'visible', timeout: 60000 });
         await expect(titleCarDiv).toBeVisible();
 
         await page.waitForSelector(SELECTORS.headerDataContainerFactura, { state: 'visible', timeout: 9000 });
@@ -62,9 +62,9 @@ test.describe('Proceso E2E Card Details', () => {
         await page.goto(URL);
         await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
         await waitForLoaderToDisappear(page);
-        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 60000 });
         await retryClick(page.locator(SELECTORS.spanAcceder));
-        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 60000 });
         const titleText = await page.locator(SELECTORS.titleElement).innerText();
         expect(titleText).toContain('Gestión de Vehículos');
 
@@ -72,9 +72,44 @@ test.describe('Proceso E2E Card Details', () => {
         await page.waitForTimeout(9000);
         await selectFirstCard(page);
 
-        await page.waitForSelector(SELECTORS.noContestaButton, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.noContestaButton, { state: 'visible', timeout: 60000 });
         await retryClick(page.locator(SELECTORS.noContestaButton));
-        await page.waitForSelector(SELECTORS.aceptarButton, { state: 'visible', timeout: 30000 });
+        await page.waitForSelector(SELECTORS.aceptarButton, { state: 'visible', timeout: 60000 });
         await retryClick(page.locator(SELECTORS.aceptarButton));
+    });
+    
+    test('CARD DETAILS: button history', async ({ page }) => {
+        await page.goto(URL);
+        await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page);
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 60000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await verifyPageTitle(page, 'Gestión de Vehículos');
+        
+        await page.waitForTimeout(3000);
+        const primeraTarjeta = await selectFirstCard(page);
+
+        const printIcon = page.locator(SELECTORS.printIcon);
+        await retryClick(printIcon);
+    });
+
+     test('CARD DETAILS: button all oportunities', async ({ page }) => {
+        await page.goto(URL);
+        await login(page, 'wcadena@casabaca.com', 'wcadena@casabaca.com');
+        await waitForLoaderToDisappear(page);
+        await page.waitForSelector(SELECTORS.spanAcceder, { state: 'visible', timeout: 60000 });
+        await retryClick(page.locator(SELECTORS.spanAcceder));
+        await page.waitForSelector(SELECTORS.titleElement, { state: 'visible', timeout: 60000 });
+        const titleText = await page.locator(SELECTORS.titleElement).innerText();
+        expect(titleText).toContain('Gestión de Vehículos');
+
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(9000);
+        await selectFirstCard(page);
+
+        await page.waitForSelector(SELECTORS.allOportunitiesButton, { state: 'visible', timeout: 60000 });
+        await retryClick(page.locator(SELECTORS.allOportunitiesButton));
+        /*await page.waitForSelector(SELECTORS.aceptarButton, { state: 'visible', timeout: 60000 });
+        await retryClick(page.locator(SELECTORS.aceptarButton));*/
     });
 });

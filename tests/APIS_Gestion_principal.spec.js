@@ -3,7 +3,7 @@ const connection = require('./db.js');
 
 // Configura los encabezados compartidos
 const headers = {
-  'Authorization': 'Bearer 215|aMUuQFQaJ14Xar9eU2k55VChiyDgwRsqKos9SshU',
+  'Authorization': 'Bearer 213|3e2FDZKkpRWmQwinJkM35dpTJGgnPDBldGpb00tt',
   'Content-Type': 'application/json'
 };
 
@@ -12,7 +12,7 @@ let context;
 test.beforeAll(async () => {
   context = await request.newContext({
     ignoreHTTPSErrors: true,
-    baseURL: 'https://api-sugarcrm.casabaca.loc',
+    baseURL: 'https://api2.qa.epicentro-digital.com',
     extraHTTPHeaders: headers,
     timeout: 60000  // Aumenta el tiempo de espera a 60 segundos
   });
@@ -145,8 +145,11 @@ test.describe('API Tests gestion principal', () => {
   test('API gestion principal: all', async () => {
     const url = '/api/v2/postventa/gestionPrincipal?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
 
+  console.log(url);
+
     try {
       const response = await measureGetRequestTime(url);
+
       const responseBody = await response.json();
       console.log('Response from API:', responseBody);
 
