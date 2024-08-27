@@ -83,7 +83,7 @@ const getDbDataFromQuery = (query) => {
   });
 };
 
-test.describe('API Tests', () => {
+test.describe('API Test gestion', () => {
 
   test('API gestion: gestion una', async () => {
     const url = '/api/v2/postventa/sugar_gestion/4?appId=c81e728d9d4c2f636f067f89cc14862c&usuId=2';
